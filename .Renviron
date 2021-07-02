@@ -1,0 +1,3 @@
+_R_CHECK_LICENSE_=FALSE
+R_LIBS=../library/%V
+R_LIBS_USER=../library/%V

@@ -1,0 +1,95 @@
+---
+# R Markdown
+
+# This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. -->
+# When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Embedding an R code chunk: 
+#
+#       ```{r marginalPowerCode, echo = TRUE, eval = FALSE} -->
+#             NNSampleSize::pwr(end_type = "diff", n = sampleSize, sig.level = 0.05, trt = 0.5, ctrl = 1.5, 
+#                               sd = 1, alternative = "two.sided", determine = "power") 
+#       ``` 
+
+## Including a table -->
+#       ```{r sampleSizeTable, tab.cap = "Programming output of estimated sample size.", echo = FALSE, eval=TRUE}
+#             tblSampleSize <- flextable::flextable(dplyr::rename(sampleSize, all_of(sampleSizeNames)))
+#             tblSampleSize <- flextable::add_footer_lines(tblSampleSize, paste("Delta: ??. The method                         used was:", ssMethod, "."))
+#             tblSampleSize <- flextable::font(tblSampleSize, part = "all", fontname = "Times New Roman (Body)")
+#             tblSampleSize <- flextable::fontsize(tblSampleSize, part = "all", size = 12) # font size                         12
+#             tblSampleSize <- flextable::bold(tblSampleSize, part = "header")
+#             tblSampleSize <- flextable::italic(tblSampleSize, part = "footer")
+#             flextable::set_table_properties(tblSampleSize, width = 1, layout = "autofit")
+#        ``` 
+
+## Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. 
+
+# The output type bookdown ensures that cross-referencing within the document is possible.
+# When manually knitting and generating a word document use the option "Knit to word_document2"
+
+title: "Sample size calculation"
+subtitle: "[NNXXXX-XXXX]"
+abstract: |
+  [STUDY TITLE] 
+
+
+  Trial Phase:
+  
+  [TRIAL PHASE]
+output:
+  bookdown::word_document2: 
+    reference_docx: refDoc.docx
+    number_sections: TRUE
+    toc: TRUE
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("magrittr")
+library("knitr")
+
+```
+
+<!-- Ensures page break after the table of contents  -->
+\newpage
+
+# Introduction
+This document provides a detailed description of the sample size considerations for trial NNXXXX-XXXX.
+
+
+# Objective(s), estimand(s) and endpoint(s)
+##  Objective(s)
+[ADD Objective(s)]
+
+
+## Estimand(s)
+[ADD Estimand(s)]
+
+##	Primary endpoint(s)
+[ADD Primary endpoint(s)]
+
+
+## Secondary endpoints
+[ADD Secondary endpoints]
+
+
+### Confirmatory endpoint(s)
+[ADD Confirmatory endpoint(s)]
+
+
+### Supportive endpoint(s) used in sample size calculation
+[ADD Supportive endpoint(s) used in sample size calculation]
+
+
+# Trial design
+[ADD Trial design]
+
+
+# Testing strategy
+[ADD Testing strategy]
+
+
+# Assumptions
+[ADD Assumptions]
+
+

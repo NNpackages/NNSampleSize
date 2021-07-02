@@ -1,0 +1,15 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+
+# Ignore YAML files
+\.yml
+
+# Don't include .Rprofile
+^\.Rprofile$
+^packrat/
+
+
+inst/review-app/persistent_data
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

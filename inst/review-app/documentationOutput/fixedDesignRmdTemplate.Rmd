@@ -1,0 +1,196 @@
+# Programming code
+The software R Version `r getRversion()` was used for the calculations.  
+
+The sample size was estimated using the following code. 
+<!-- Code: Sample size  -->
+```{r sampleSizeCode, echo = TRUE, eval = FALSE}
+
+sampleSize <- NNSampleSize::pwr(end_type = "diff", sig.level = 0.05, power = 0.8, trt = 0.5, ctrl = 1.5, sd = 1, alternative = "two.sided", determine = "n")
+
+```
+
+
+The number of subjects to be recruited to obtain the estimated sample size, when regarding screening failure risk and dropout risk in the treatment and control group was computed using the following code:
+<!-- Code: Required subjects  -->
+```{r requiredSampleSizeCode, echo = TRUE, eval = FALSE}
+
+requiredSampleSize <- NNSampleSize::getNumSubjRecruit(scr_fail_risk = 0.15, dropout_risk_trt = 0.10, dropout_risk_ctrl = 0.10, cal_sample_size = sampleSize$n)
+
+```
+
+
+The marginal power of each endpoint was computed independently, assuming a sample size of the estimated value. The utilised code for the computations is presented below:
+<!-- Code: Marginal power of each endpoint  -->
+```{r marginalPowerCode, echo = TRUE, eval = FALSE}
+NNSampleSize::pwr(end_type = "diff", n = sampleSize$n, sig.level = 0.05, trt = 0.5, ctrl = 1.5, sd = 1, alternative = "two.sided", determine = "power")
+
+```
+
+Effective power for each endpoint in the hierarchical testing procedure were calculated based on the computed marginal power, using the following code:
+<!-- Code: Effective power of each endpoint in the hierarchical testing procedure -->
+```{r effectivePowerCode, echo = TRUE, eval = FALSE}
+
+for(i in seq(ep_table_effPower[["No."]])){ 
+if (i == 1){ 
+ep_table_effPower[["Effective power"]][i] = as.character(ep_table_effPower[["Marginal power"]][i]) 
+} 
+ else{
+ tempPriorEffPower <- as.numeric(ep_table_effPower[["Effective power"]][i-1])
+ tempEffPower <- as.numeric(ep_table_effPower[["Marginal power"]][i]) 
+ ep_table_effPower[["Effective power"]][i] =as.character(as.numeric(ep_table_effPower[["Effective power"]][i-1])*as.numeric(ep_table_effPower[["Marginal power"]][i])) 
+ } 
+} 
+``` 
+
+
+# Programming output
+The estimated sample size is presented in table \@ref(tab:sampleSizeTable). 
+<!-- Output: Sample size --> 
+```{r sampleSizeTable, tab.cap = "Programming output of estimated sample size.", echo = FALSE, eval=TRUE}
+
+    sampleSize <- NNSampleSize::pwr(end_type = "diff", sig.level = 0.05, power = 0.8, trt = 0.5, ctrl = 1.5, sd = 1, alternative = "two.sided", determine = "n") 
+
+    sampleSize <- tibble::as_tibble(sampleSize) 
+    ssMethod <- sampleSize$method 
+    sampleSize <- sampleSize %>%  dplyr::mutate(note = NULL, method = NULL, n = round(n,2)) 
+    sampleSizeNames <- c( 
+      "Sample size"         = "n", 
+      "delta"               = "delta", 
+      "Standard deviation"  = "sd", 
+      "Significance level"  = "sig.level", 
+      "Power"               = "power" 
+   ) 
+
+  sampleSize    <- sampleSize %>%  dplyr::mutate(sig.level = sig.level*100, power = power*100)
+  tblSampleSize <- flextable::flextable(dplyr::rename(sampleSize, all_of(sampleSizeNames))) 
+  tblSampleSize <- flextable::add_footer_lines(tblSampleSize, paste("Delta: ??. Power and significance level are in percent. The method used was:", ssMethod, ".")) 
+  tblSampleSize <- flextable::font(tblSampleSize, part = "all", fontname = "Times New Roman (Body)") # font is Times New Roman 
+  tblSampleSize <- flextable::fontsize(tblSampleSize, part = "all", size = 12) # font size 12 
+  tblSampleSize <- flextable::bold(tblSampleSize, part = "header") # bold header
+  tblSampleSize <- flextable::italic(tblSampleSize, part = "footer") # italic footer 
+  flextable::set_table_properties(tblSampleSize, width = 1, layout = "autofit") 
+``` 
+ <br> 
+
+The estimated sample size and number of subjects to be recruited are presented in table \@ref(tab:requiredSampleSizeTable).
+ <!-- Output: Required number of subjects --> 
+```{r requiredSampleSizeTable, tab.cap = "Programming output of the number of subjects to be recruited for the trial", echo = FALSE, eval=TRUE}
+
+ requiredSampleSize <- NNSampleSize::getNumSubjRecruit(scr_fail_risk = 0.15, dropout_risk_trt = 0.10, dropout_risk_ctrl = 0.10, cal_sample_size = sampleSize$n) 
+ requiredSampleSize <- tibble::as_tibble(requiredSampleSize)
+ 
+ 
+ requiredSampleSizeNames <- c( 
+     "Required sample size"   = "numSubjRecruit", 
+     "Screening failure risk" = "scr_fail_risk", 
+     "Dropout risk (Treatment)"     = "dropout_risk_trt", 
+    "Dropout risk (Control)"    = "dropout_risk_ctrl", 
+    "Estimated sample size"  = "cal_sample_size" 
+   ) 
+  
+ requiredSampleSize    <- requiredSampleSize %>%  dplyr::mutate(scr_fail_risk = scr_fail_risk*100, dropout_risk_trt = dropout_risk_trt*100, dropout_risk_ctrl = dropout_risk_ctrl*100)  
+ tblRequiredSampleSize <- flextable::flextable(dplyr::rename(requiredSampleSize, all_of(requiredSampleSizeNames))) 
+ tblRequiredSampleSize <- flextable::add_footer_lines(tblRequiredSampleSize, "The estimated sample size is rounded to the nearest, highest integer. Screening failure risk, dropout risk of treatment and control group are in percent.") 
+ tblRequiredSampleSize <- flextable::font(tblRequiredSampleSize, part = "all", fontname = "Times New Roman (Body)") # font is Times New Roman 
+ tblRequiredSampleSize <- flextable::fontsize(tblRequiredSampleSize, part = "all", size = 12) # font size 12 
+ tblRequiredSampleSize <- flextable::bold(tblRequiredSampleSize, part = "header") # bold header 
+ tblRequiredSampleSize <- flextable::italic(tblRequiredSampleSize, part = "footer") # italic footer 
+ flextable::set_table_properties(tblRequiredSampleSize, width = 1, layout = "autofit") 
+
+``` 
+
+ <br> 
+
+The assumptions of each endpoint, the marginal power, and the effective power are presented in table \@ref(tab:endpointTable). The effective power is the cumulative product corresponding to an assumption of independent endpoints.
+<!-- Output: Endpoints --> 
+```{r endpointTable, tab.cap = "Programming output of the endpoints", echo = FALSE, eval=TRUE}
+
+ # Parameter values of the endpoints: 
+ name        = c("EP1",        "EP2")       # Insert the name of each endpoint, separated with a comma. 
+ end_type    = c("diff",       "diff")      # Insert the type of test for each endpoint, separated with a comma.  
+ sig.level   = c(0.05,         0.05)        # Insert the significance level for each endpoint, separated with a comma. 
+ trt         = c(0.5,          1.05)        # Insert mean in treatment group for each endpoint, separated with a comma. 
+ ctrl        = c(1.0,          1.5)         # Insert mean in control group for each endpoint, separated with a comma. 
+ sd          = c(1,            1)           # Insert standard deviation for each endpoint, separated with a comma. 
+ alternative = c("two.sided",  "two.sided") # Insert the alternative hypothesis for each endpoint, separated with a comma. 
+
+#Tibble to store results of endpoints: -->
+ endpointRes <- tibble::tibble(order = "NA",  
+                                name = "NA",  
+                                   n = "NA",  
+                               delta = "NA",  
+                                  sd = "NA",  
+                           sig.level = "NA",  
+                            end_type = "NA",  
+                               power = "NA",  
+                            effPower = "NA") 
+ endpointRes <- endpointRes %>% dplyr::filter(order == 0) 
+
+i=1
+
+ for (i in seq_along(end_type)){ 
+ endpoint <- NNSampleSize::pwr(end_type = end_type[i],  
+                                      n = ceiling(sampleSize$n),  
+                              sig.level = sig.level[i],  
+                                    trt = trt[i],  
+                                   ctrl = ctrl[i],  
+                                     sd = sd[i],  
+                            alternative = alternative[i],  
+                             determine = "power") 
+
+if(i == 1){ 
+ endpointRes <- endpointRes %>% dplyr::add_row(order = as.character(i),  
+                                                name  = as.character(name[i]),  
+                                                    n = as.character(ceiling(sampleSize$n)),  
+                                                delta = as.character(endpoint$delta),  
+                                                   sd = as.character(endpoint$sd),  
+                                             sig.level = as.character(endpoint$sig.level*100),  
+                                             end_type = as.character(end_type[i]),  
+                                                power = as.character(round(endpoint$power*100,2)),  
+                                              effPower = as.character(round(endpoint$power*100,2))) 
+  }  
+   else{ 
+   endpointRes <- endpointRes %>% dplyr::add_row(order = as.character(i),  
+                                                 name  = as.character(name[i]),  
+                                                      n = as.character(ceiling(sampleSize$n)),  
+                                                  delta = as.character(endpoint$delta),  
+                                                    sd = as.character(endpoint$sd),  
+                                              sig.level = as.character(endpoint$sig.level*100),  
+                                               end_type = as.character(end_type[i]),  
+                                                  power = as.character(round(endpoint$power*100,2)),  
+                                               effPower = as.character(round(endpoint$power*as.numeric(endpointRes$power[[i-1]]),2))) 
+
+   } 
+
+} 
+
+ endpointNames <- c( 
+  "Order"               = "order", 
+   "Endpoint"            = "name", 
+     "Sample size"         = "n", 
+    "delta"               = "delta", 
+     "Standard deviation"  = "sd", 
+   "Significance level"  = "sig.level", 
+     "Test type"           = "end_type", 
+    "Marginal power"      = "power", 
+     "Effective power"     = "effPower" 
+  ) 
+
+
+ tblEndpoints <- flextable::flextable(dplyr::rename(endpointRes, all_of(endpointNames))) 
+ tblEndpoints <- flextable::add_footer_lines(tblEndpoints, "The calculated marginal and effective power are in percent.") 
+ tblEndpoints <- flextable::font(tblEndpoints, part = "all", fontname = "Times New Roman (Body)") # font is Times New Roman 
+ tblEndpoints <- flextable::fontsize(tblEndpoints, part = "all", size = 12) # font size 12 
+ tblEndpoints <- flextable::bold(tblEndpoints, part = "header") # bold header 
+ tblEndpoints <- flextable::italic(tblEndpoints, part = "footer") # italic footer 
+ flextable::set_table_properties(tblEndpoints, width = 1, layout = "autofit") 
+
+``` 
+
+#	Summary and conclusion
+[ADD Summary]
+
+
+#	References
+[ADD REFERENCES]
+

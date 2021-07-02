@@ -1,0 +1,20 @@
+
+
+.media .media-object { max-width: 120px; }
+.media-heading { position: relative; padding: -20px;}
+.media-body { position: relative; }
+.media-date {
+    position: absolute;
+    right: 25px;
+    top: 10px;
+}
+.media-date li { padding: 2; }
+.media-date li:first-child:before { content: ''; }
+.media-date li:before {
+    content: '';
+    margin-left:  2px;
+    margin-right: 2px;
+}
+.media-comment { margin-bottom: 15px; }
+.media-replied { margin: 0 0 20px 50px; }
+.media-replied .media-heading { padding-left: 6px; }

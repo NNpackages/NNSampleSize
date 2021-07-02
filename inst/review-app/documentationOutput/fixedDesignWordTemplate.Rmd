@@ -1,0 +1,172 @@
+
+
+# Programming code
+The software R Version `r getRversion()` was used for the calculations. 
+
+The sample size was estimated using the following code and the assumptions presented in table \@ref(tab:paramSampleSizeTable).
+<!-- Code: Sample size  -->
+```{r sampleSizeCode, echo = TRUE, eval = FALSE}
+
+sampleSize <- NNSampleSize::pwr(end_type, sig.level, power, trt, ctrl, sd, alternative, determine = "n")
+
+```
+
+<!-- Table: Sample size  -->
+```{r paramSampleSizeTable, echo = FALSE, eval = TRUE, tab.cap = "Assumptions used for sample size calculations."}
+
+TestTbl <- tibble::tibble('End type' = input$ep_type, 'Sig. level'= sig.level_parse()*100, 'Power' = power_parse()*100, 'Treatment mean' = input$ep_trt_mean, 'Control mean' = input$ep_ctrl_mean, 'SD' = input$ep_sd, 'Alternative hypothesis' = input$ep_alternative)
+ # as_tibble(testTblTemp) 
+tblSampleSize <- flextable::flextable(TestTbl) 
+tblSampleSize <- flextable::add_footer_lines(tblSampleSize, "Abbreviation: SD is standard deviation. In the code, treatment mean is denoted as trt, control mean as ctrl, and alternative hypotheses as alternative. Power and significance level are in percent.") 
+
+tblSampleSize <- flextable::font(tblSampleSize, part = "all", fontname = "Times New Roman (Body)") # font is Times New Roman 
+tblSampleSize <- flextable::fontsize(tblSampleSize, part = "all", size = 12) # font size 12 
+tblSampleSize <- flextable::bold(tblSampleSize, part = "header") # bold header
+tblSampleSize <- flextable::italic(tblSampleSize, part = "footer") # italic footer 
+flextable::set_table_properties(tblSampleSize, width = 1, layout = "autofit")
+
+```
+
+The number of subjects to be recruited to obtain the estimated sample size, when regarding screening failure risk and dropout risk in the treatment and control group was computed using the following code and the assumptions presented in table \@ref(tab:paramReqSampleSizeTable).
+<!-- Code: Required subjects  -->
+```{r requiredSampleSizeCode, echo = TRUE, eval = FALSE}
+
+requiredSampleSize <- NNSampleSize::getNumSubjRecruit(scr_fail_risk, dropout_risk_trt, dropout_risk_ctrl, sampleSize$n)
+
+```
+
+<!-- Table: Required subjects  -->
+```{r paramReqSampleSizeTable, echo = FALSE, eval = TRUE, tab.cap = "Assumptions used for required sample size calculations."}
+
+TempTbl <- tibble::tibble('Screening failure risk' = input$fixed_scr_fail_risk, 'Treatment dropout risk'= input$fixed_dropout_risk_trt, 'Control dropout risk' = input$fixed_dropout_risk_ctrl)
+ # as_tibble(testTblTemp) 
+tblReqSampleSize <- flextable::flextable(TempTbl) 
+tblReqSampleSize <- flextable::add_footer_lines(tblReqSampleSize, "In the code, screening failure risk is denoted as scr_fail_risk, treatment dropout risk as dropout_risk_trt, and control dropout risk as dropout_risk_ctrl. The values are in percent.") 
+# 
+tblReqSampleSize <- flextable::font(tblReqSampleSize, part = "all", fontname = "Times New Roman (Body)") # font is Times New Roman 
+tblReqSampleSize <- flextable::fontsize(tblReqSampleSize, part = "all", size = 12) # font size 12 
+tblReqSampleSize <- flextable::bold(tblReqSampleSize, part = "header") # bold header
+#tblReqSampleSize <- flextable::italic(tblReqSampleSize, part = "footer", "Appreviations: SD is standard deviation.") # italic footer 
+flextable::set_table_properties(tblReqSampleSize, width = 1, layout = "autofit")
+
+```
+
+The marginal power of each endpoint was computed independently, assuming a sample size of the estimated value. The utilised code for the computations is presented below and the assumptions presented in table \@ref(tab:paramSampleSizeTable).
+<!-- Code: Marginal power of each endpoint  -->
+```{r marginalPowerCode, echo = TRUE, eval = FALSE}
+NNSampleSize::pwr(end_type, n = sampleSize$n, sig.level, trt, ctrl, sd, alternative, determine = "power")
+
+```
+
+Effective power for each endpoint in the hierarchical testing procedure were calculated based on the computed marginal power, using the following code:
+<!-- Code: Effective power of each endpoint in the hierarchical testing procedure -->
+```{r effectivePowerCode, echo = TRUE, eval = FALSE}
+
+for(i in seq(ep_table_effPower[["No."]])){ 
+if (i == 1){ 
+ep_table_effPower[["Effective power"]][i] = as.character(ep_table_effPower[["Marginal power"]][i]) 
+} 
+ else{
+ tempPriorEffPower <- as.numeric(ep_table_effPower[["Effective power"]][i-1])
+ tempEffPower <- as.numeric(ep_table_effPower[["Marginal power"]][i]) 
+ ep_table_effPower[["Effective power"]][i] =as.character(as.numeric(ep_table_effPower[["Effective power"]][i-1])*as.numeric(ep_table_effPower[["Marginal power"]][i])) 
+ } 
+} 
+``` 
+
+# Programming output
+The estimated sample size is presented in table \@ref(tab:sampleSizeTable). 
+<!-- Output: Sample size --> 
+```{r sampleSizeTable, tab.cap = "Programming output of estimated sample size.", echo = FALSE, eval=TRUE}
+
+    sampleSize <- NNSampleSize::pwr(end_type = input$ep_type, sig.level = sig.level_parse(), power = power_parse(), trt = input$ep_trt_mean, ctrl = input$ep_ctrl_mean, sd = input$ep_sd, alternative = input$ep_alternative, determine = "n") 
+
+    sampleSize <- tibble::as_tibble(sampleSize) 
+    ssMethod <- sampleSize$method 
+    sampleSize <- sampleSize %>%  dplyr::mutate(note = NULL, method = NULL, n = round(n,2), sig.level = sig.level*100, power = power*100) 
+    sampleSizeNames <- c( 
+      "Sample size"         = "n", 
+      "delta"               = "delta", 
+      "Standard deviation"  = "sd", 
+      "Significance level"  = "sig.level", 
+      "Power"               = "power" 
+   ) 
+
+
+  tblSampleSize <- flextable::flextable(dplyr::rename(sampleSize, all_of(sampleSizeNames))) 
+  tblSampleSize <- flextable::add_footer_lines(tblSampleSize, paste("Delta: ??. Power and significance level are in percent. The method used was:", ssMethod, ".")) 
+  tblSampleSize <- flextable::font(tblSampleSize, part = "all", fontname = "Times New Roman (Body)") # font is Times New Roman 
+  tblSampleSize <- flextable::fontsize(tblSampleSize, part = "all", size = 12) # font size 12 
+  tblSampleSize <- flextable::bold(tblSampleSize, part = "header") # bold header
+  tblSampleSize <- flextable::italic(tblSampleSize, part = "footer") # italic footer 
+  flextable::set_table_properties(tblSampleSize, width = 1, layout = "autofit") 
+``` 
+ <br> 
+
+The estimated sample size and number of subjects to be recruited are presented in table \@ref(tab:requiredSampleSizeTable).
+ <!-- Output: Required number of subjects --> 
+```{r requiredSampleSizeTable, tab.cap = "Programming output of the number of subjects to be recruited for the trial", echo = FALSE, eval=TRUE}
+
+ requiredSampleSize <- NNSampleSize::getNumSubjRecruit(scr_fail_risk = input$fixed_scr_fail_risk/100, dropout_risk_trt = input$fixed_dropout_risk_trt/100, dropout_risk_ctrl = input$fixed_dropout_risk_ctrl/100, cal_sample_size = sampleSize$n) 
+ requiredSampleSize <- tibble::as_tibble(requiredSampleSize)
+ 
+ 
+ requiredSampleSizeNames <- c( 
+     "Required sample size"   = "numSubjRecruit", 
+     "Screening failure risk" = "scr_fail_risk", 
+     "Dropout risk (Treatment)"     = "dropout_risk_trt", 
+    "Dropout risk (Control)"    = "dropout_risk_ctrl", 
+    "Estimated sample size"  = "cal_sample_size" 
+   ) 
+  
+ requiredSampleSize    <- requiredSampleSize %>%  dplyr::mutate(scr_fail_risk = scr_fail_risk*100, dropout_risk_trt = dropout_risk_trt*100, dropout_risk_ctrl = dropout_risk_ctrl*100, dropout_risk_ctrl = dropout_risk_ctrl*100) 
+ tblRequiredSampleSize <- flextable::flextable(dplyr::rename(requiredSampleSize, all_of(requiredSampleSizeNames))) 
+ tblRequiredSampleSize <- flextable::add_footer_lines(tblRequiredSampleSize, "The estimated sample size is rounded to the nearest, highest integer. Screening failure risk, dropout risk of treatment and control group are in percent.") 
+ tblRequiredSampleSize <- flextable::font(tblRequiredSampleSize, part = "all", fontname = "Times New Roman (Body)") # font is Times New Roman 
+ tblRequiredSampleSize <- flextable::fontsize(tblRequiredSampleSize, part = "all", size = 12) # font size 12 
+ tblRequiredSampleSize <- flextable::bold(tblRequiredSampleSize, part = "header") # bold header 
+ tblRequiredSampleSize <- flextable::italic(tblRequiredSampleSize, part = "footer") # italic footer 
+ flextable::set_table_properties(tblRequiredSampleSize, width = 1, layout = "autofit") 
+
+``` 
+
+ <br> 
+
+The assumptions of each endpoint, the marginal power, and the effective power are presented in table \@ref(tab:endpointTable). The effective power is the cumulative product corresponding to an assumption of independent endpoints.
+<!-- Output: Endpoints --> 
+```{r endpointTable, tab.cap = "Programming output of the endpoints", echo = FALSE, eval=TRUE}
+
+endpointRes <- tibble::as_tibble(power_in2())
+
+endpointNames <- c( 
+  "Order"               = "No.", 
+  "Endpoint"            = "Endpoint", 
+  "N"                   = "N", 
+  "SD"                  = "SD", 
+  "Sig. level"          = "Significance level", 
+  "Test type"           = "Test type", 
+  "Marginal power"      = "Marginal power", 
+  "Mean (treatment)"    = "Treatment mean/prop.",
+  "Mean (control)"      = "Control mean/prop."
+  #"Effective power"     = "Effective power" 
+) 
+
+ tblEndpoints <- flextable::flextable(dplyr::rename(endpointRes, all_of(endpointNames))) 
+ tblEndpoints <- flextable::add_footer_lines(tblEndpoints, "The calculated marginal and effective power are in percent.") 
+ tblEndpoints <- flextable::font(tblEndpoints, part = "all", fontname = "Times New Roman (Body)") # font is Times New Roman 
+ tblEndpoints <- flextable::fontsize(tblEndpoints, part = "all", size = 12) # font size 12 
+ tblEndpoints <- flextable::bold(tblEndpoints, part = "header") # bold header 
+ tblEndpoints <- flextable::italic(tblEndpoints, part = "footer") # italic footer 
+ flextable::set_table_properties(tblEndpoints, width = 1, layout = "autofit") 
+ 
+
+
+``` 
+
+#	Summary and conclusion
+[ADD Summary]
+
+
+#	References
+[ADD REFERENCES]
+
